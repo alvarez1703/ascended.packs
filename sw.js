@@ -1,0 +1,63 @@
+const SHELL_CACHE = "ascended-shell-v4";
+const IMAGE_CACHE = "ascended-cards-v1";
+const appUrl = (path) => new URL(path, self.registration.scope).href;
+const APP_SHELL = [
+  appUrl("./"),
+  appUrl("index.html"),
+  appUrl("styles.css"),
+  appUrl("app.js"),
+  appUrl("pack-engine.js"),
+  appUrl("data/cards.json"),
+  appUrl("manifest.webmanifest"),
+  appUrl("assets/icon.svg"),
+  appUrl("assets/icon-maskable.svg"),
+  appUrl("assets/ascended-heroes-pack.png"),
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(APP_SHELL)));
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => ![SHELL_CACHE, IMAGE_CACHE].includes(key))
+          .map((key) => caches.delete(key)),
+      ),
+    ),
+  );
+  self.clients.claim();
+});
+
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
+  if (url.hostname === "assets.tcgdex.net") {
+    event.respondWith(
+      caches.open(IMAGE_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        const response = await fetch(request);
+        if (response.ok || response.type === "opaque") cache.put(request, response.clone());
+        return response;
+      }),
+    );
+    return;
+  }
+
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response.ok) {
+          caches.open(SHELL_CACHE).then((cache) => cache.put(request, response.clone()));
+        }
+        return response;
+      })
+      .catch(async () => (await caches.match(request)) || caches.match(appUrl("index.html"))),
+  );
+});

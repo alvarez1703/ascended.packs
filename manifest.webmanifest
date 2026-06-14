@@ -1,0 +1,25 @@
+{
+  "name": "Ascended Packs",
+  "short_name": "Ascended",
+  "description": "A tactile, fan-made Ascended Heroes pack-opening simulator.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090611",
+  "theme_color": "#100b20",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
